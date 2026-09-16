@@ -1,0 +1,42 @@
+---
+title: Two OCR engines and a learning loop that needs no code change
+date: 2026-09-05T08:00:00.000Z
+template: BlogPost
+usesKatex: false
+draft: false
+path: blogs/dual-ocr-invoice-extraction-learning-loop
+category: Research
+thumbnail: /blog/dual-ocr-invoice-extraction-learning-loop.jpg
+image: https://nunnarilabs.com/blog/dual-ocr-invoice-extraction-learning-loop.jpg
+description: Engineering notes from ARB Corporation's invoice pipeline on Oracle Cloud — why one OCR engine was not enough, how per-supplier sub-prompts close the human-in-the-loop loop, and how a GPU node pool that scales to zero keeps the cost honest.
+---
+
+ARB Corporation, Australia's largest 4x4 accessories manufacturer, receives supplier invoices in five to ten different formats, by email and through portals, as digital PDFs, scanned images and the occasional handwritten page. Before this work, every one of them was retrieved, read, keyed, validated and uploaded by hand, at roughly forty-five minutes each. Phase 1 of the programme put an AI extraction layer in front of that process on Oracle Cloud Infrastructure. These are the three decisions from Phase 1 that we think generalise.
+
+## One OCR engine is a single point of failure
+
+The first pipeline used a single OCR engine. It was not good enough, and not because the engine was weak. Invoices arrive in two fundamentally different forms: digital PDFs with a clean text layer, and image-only pages from scanners and phones. An engine tuned for one degrades on the other, and with ten layouts in play there is always a case it handles poorly.
+
+So the pipeline now runs two sources of truth for extraction, LightOnOCR and Docling, and reconciles them. Coverage across digital and scanned documents is robust rather than dependent on whichever case the single engine got right. The cost is a second inference pass; the benefit is that accuracy stopped being layout-dependent.
+
+## The model learns per supplier, without a deploy
+
+Key-value extraction runs on a foundation model through Oracle Generative AI Services. Every model available on the service was evaluated against real invoices; Grok 4 produced the highest extraction quality and the most consistent structured JSON, so it was selected.
+
+The interesting part is what happens when the model is wrong. When an operator corrects a field in the review surface, they can attach a sub-prompt: a short, single-field instruction. That sub-prompt is stored against the channel, the supplier and the field, and folded into the extraction prompt the next time a document from that supplier arrives. The latest sub-prompt for a field supersedes the previous one. Extraction improves supplier by supplier, from human corrections, with no code change and no retraining.
+
+This is the closure of the human-in-the-loop loop. Low-confidence extraction goes to review; the correction becomes a rule; the rule applies automatically next time. Phase 1 reached 85 per cent extraction accuracy on trained formats with every document still passing through human review, which is the right posture while suppliers are being onboarded one at a time.
+
+## Confidence you can act on, and honesty about where it comes from
+
+Each extraction carries a self-reported accuracy score from the model, zero to one hundred, against a fixed rubric. Documents below the threshold are flagged for review; a missing or malformed score defaults to zero, which forces review rather than silently passing. We are explicit that this is a model self-assessment, not a diff against ground truth. It is a routing signal for the review queue, and it is measured against human corrections over time through the metrics rollup, which tracks documents processed, documents corrected, re-extractions and processing time per supplier and channel.
+
+## The GPU that isn't running
+
+Extraction runs on Oracle Kubernetes Engine in the OCI Melbourne region across three availability domains. The API services run on an always-on node pool. Document extraction runs on a separate GPU node pool that the cluster autoscaler scales between zero and one node: a GPU comes up when extraction work is queued during office hours and is torn down when idle. The expensive resource exists only while it is doing the expensive work. The always-on tier keeps the APIs and the review surface available throughout.
+
+## What comes next
+
+Phase 2 adds multi-invoice PDF segmentation, entity resolution against the system of record, and end-to-end automation into JD Edwards with batch scheduling and rollback. Phase 3 extends to multiple languages and a second region. At full production run-rate the programme brings an invoice down from around forty-five minutes to around five, a ninety per cent reduction in processing cost, with accuracy above ninety-five per cent on the top suppliers.
+
+*Nunnari Labs delivers this programme with DeepWeaver, our exclusive partner in Australia. Figures are from the programme's Phase 1 report.*

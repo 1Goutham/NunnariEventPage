@@ -1,0 +1,51 @@
+---
+title: "Sovereign AI infrastructure with intelligent model routing"
+description: "A large financial services organisation needed AI over sensitive documents with nothing leaving the premises — NVIDIA L40S infrastructure validated for enterprise use, and an LLM router that sends each task to the right model."
+industry: "Financial services · Sovereign AI"
+system: "Sovereign GPU platform + LLM Router"
+metric: "4× document throughput"
+tags: ["Sovereign AI", "NVIDIA L40S", "LLM routing", "On-premises"]
+date: "2026-04-01"
+featured: true
+---
+
+## The challenge
+
+A large financial services organisation needed to process sensitive documents with AI, and compliance mandates required everything to stay on-premises: no cloud, no external API calls. They also carried a hidden inefficiency. A single large model served every task, so GPU capacity was spent on simple queries that a smaller model could handle.
+
+They needed two things: sovereign GPU infrastructure validated for enterprise use, and an intelligent way to route each task to the right model at the right time.
+
+## Building the foundation
+
+The organisation deployed NVIDIA L40S GPUs, 48 GB each, on Ubuntu Server under NVIDIA AI Enterprise. Rather than guess at configuration, the build followed a formal three-day validation framework.
+
+- **Day one** verified hardware health, driver installation, the Kubernetes cluster and the GPU Operator.
+- **Day two** benchmarked model performance, reaching 180 tokens per second on Llama 3 8B and confirming linear scaling across multiple GPUs.
+- **Day three** validated monitoring, alerting and disaster-recovery scenarios.
+
+The result was production readiness from the first day of operation, with issues found and fixed before they could become incidents.
+
+## Adding intelligence: the LLM Router
+
+On top of the GPU platform sits the LLM Router, a proxy that classifies each incoming prompt and routes it to the optimal model:
+
+- **Simple tasks** such as classification and extraction go to Qwen 2.5 7B, fast and efficient.
+- **Complex reasoning** goes to Mixtral 8x22B.
+- **Creative work** such as drafting and brainstorming goes to Llama 3.1 70B.
+
+The router adds under 10 ms of overhead and saves around 30 per cent of average GPU compute by eliminating oversized model deployments. Applications integrate through an OpenAI-compatible API, so existing systems connected without change.
+
+## Outcome
+
+- **Sovereignty:** zero cloud dependency; all data remains on-premises with no external API calls
+- **Efficiency:** 4× the document throughput on the same hardware through task-aware routing
+- **Reliability:** 99.5% uptime in the initial weeks, credited to validating before production
+- **Cost:** the organisation pays only for the GPU capacity it actually uses
+
+## What made the difference
+
+Two choices proved decisive. Following the validation framework did not add time; it prevented production incidents and gave confidence in capacity planning. And intelligent routing turned the platform from a one-model-fits-all bottleneck into a task-aware system that learned which models excel at which work.
+
+---
+
+*Customer details available under NDA. [Talk to us](/contact) about sovereign and self-hosted AI for regulated industries.*

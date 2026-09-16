@@ -1,0 +1,42 @@
+---
+title: Fitting three vision models into two megabytes
+date: 2026-09-05T09:00:00.000Z
+template: BlogPost
+usesKatex: false
+draft: false
+path: blogs/on-device-ai-qualcomm-qcs6490-vtcm-scheduling
+category: Research
+thumbnail: /blog/on-device-ai-qualcomm-qcs6490-vtcm-scheduling.jpg
+image: https://nunnarilabs.com/blog/on-device-ai-qualcomm-qcs6490-vtcm-scheduling.jpg
+description: Design notes from an on-device smart-glasses programme on the Qualcomm QCS6490 — why three concurrent models on one Hexagon NPU is slower than one at a time, and what an operator-constrained NPU does to a vision-language architecture.
+---
+
+> Every figure below is a design estimate from architectural analysis, not a measurement. Models for this pipeline are still in training and on-device benchmarks will follow.
+
+We are the AI and engineering partner on a pair of smart glasses for people with low vision. Everything the glasses do has to happen on the device: object and obstacle detection, ground-surface segmentation, face recognition, text reading, and scene description on request. There is no cloud round trip, because a person crossing a road cannot wait for one.
+
+The compute is a Qualcomm QCS6490: a Hexagon NPU rated in the region of twelve TOPS, an Adreno GPU, and 16 GB of LPDDR5. On paper that is generous for the model set. In practice the constraint that shaped the whole pipeline was not TOPS. It was two megabytes.
+
+## The 2 MB problem
+
+The Hexagon tensor processor keeps model weights and activations close to its vector units in a small tightly coupled memory, VTCM, of 2 MB on this part. A model whose working set fits in VTCM runs at the advertised rate. A model that does not fit streams weights from DDR on every tile, and the NPU spends its time waiting.
+
+The obvious design runs the three safety-critical models, detection, segmentation and face, as three concurrent NPU contexts. Our analysis of that design was unflattering. The Hexagon 770 has a single vector execution pipeline, so "concurrent" contexts time-slice. Meanwhile VTCM is split three ways, to roughly 680 KB each, below the 1 to 1.5 MB that detection and segmentation each want for efficient tiling. Estimated per-frame cost under that contention came out at 68 to 106 ms, a 30 to 50 per cent penalty against the same models run alone, for an effective 9 to 14 frames per second across the set.
+
+## Running one model at a time is faster
+
+The counter-intuitive fix is to stop running models concurrently. A time-interleaved schedule gives each model the whole 2 MB while it executes: detection on one frame, segmentation on the next, alternating at 15 fps each, with face recognition piggy-backing on detection frames only when a person is present. Estimated latencies with full VTCM fall to 25 to 33 ms for detection and 20 to 28 ms for segmentation, inside the sub-50 ms budget for a safety-critical decision.
+
+Two things had to be true for this to work. The orchestrator has to own scheduling, so we removed the GStreamer-native inference elements from the pipeline and kept GStreamer only for camera acquisition, downscaling and frame delivery; inference runs from a C++ orchestrator calling the QNN graph directly. And warm-standby context switching on the NPU has to be cheap, which is an open question we are validating with profiling rather than assuming.
+
+## When the NPU won't run your architecture
+
+The second constraint was operator support. The scene-description model was a vision-language model, and standard vision-transformer attention needs split and chunk operations that the NPU backend does not accelerate. Rather than fall back to CPU, we changed the architecture: a convolutional encoder the NPU runs well, and a small language decoder placed where it runs best on the chip. The partitioning is the subject of a pending patent filing, so this note stops at the outline.
+
+Model selection followed the same discipline. One candidate small VLM was disqualified on hallucination rate alone, in the 81 to 88 per cent range in our tests, because for this user a confident wrong description is worse than no description. Hallucination rate, not accuracy, is the primary safety metric for that component.
+
+## What this generalises to
+
+The pattern shows up in every on-device programme we run. The datasheet number that matters is rarely peak throughput; it is the size of the fast memory and the list of operators the accelerator actually executes. Scheduling is an architecture decision, not a runtime detail. And a model that cannot be quantised and partitioned to fit the silicon is not a candidate, however it scores on a leaderboard.
+
+*Figures are design estimates from our architectural analysis; measured results will be published once the trained models are profiled on hardware.*

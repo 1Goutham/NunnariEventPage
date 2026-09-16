@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #010314;
+  --foreground: #dadada;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/* Cyrion-style two-tone headline: dim at the start, white at the end. */
+.headline {
+  background-image: linear-gradient(
+    310deg,
+    #ffffff 40%,
+    rgba(255, 255, 255, 0.35) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* descenders (g, y, p) fall outside the line box at tight line-heights;
+     the gradient is only painted inside the box, so give them room */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+/* Eyebrow pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 5px 20px;
+  border: 1px solid rgba(231, 222, 252, 0.21);
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+.pill::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.image-caption {
+  text-align: center;
+  margin: 0 !important;
+}
+/* Nunnari globe: scoped styles. The host page only needs to size .nl-globe. */
+.nl-globe{position:relative;overflow:visible;background:transparent}
+.nl-globe canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.nl-globe-labels{position:absolute;inset:0;pointer-events:none;font-family:inherit;overflow:visible;z-index:2}
+.nl-globe .chip{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(1,3,20,.72);border:1px solid rgba(231,222,252,.21);color:#ffffff;font-size:12.5px;line-height:1;white-space:nowrap;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.45);will-change:transform}
+.nl-globe .chip b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);font-weight:400}
+.nl-globe .chip svg{width:14px;height:14px;stroke:#ffffff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nl-globe .chip.core{background:rgba(201,184,255,.16);border-color:rgba(201,184,255,.6);color:#ffffff;min-width:230px}
+@media (max-width:600px){ .nl-globe .chip{font-size:11px;padding:4px 9px 4px 4px} .nl-globe .chip b{width:22px;height:22px} .nl-globe .chip.core{min-width:0} }

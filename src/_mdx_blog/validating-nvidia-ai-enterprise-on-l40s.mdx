@@ -1,0 +1,38 @@
+---
+title: Validating NVIDIA AI Enterprise on L40S before production
+date: 2026-08-15T08:00:00.000Z
+template: BlogPost
+usesKatex: false
+draft: false
+path: blogs/validating-nvidia-ai-enterprise-on-l40s
+category: Research
+thumbnail: /blog/validating-nvidia-ai-enterprise-on-l40s.jpg
+image: https://nunnarilabs.com/blog/validating-nvidia-ai-enterprise-on-l40s.jpg
+description: The three-day run sheet we use to bring up L40S GPU servers under NVIDIA AI Enterprise — what has to be proven on day one before any model is benchmarked, and how the benchmark days are structured.
+---
+
+Sovereign and private AI deployments live or die on infrastructure that has been proven, not assumed. When we bring up a new GPU server for a client, whether a single node or a Kubernetes pool, we work through a fixed run sheet before any model is allowed near it. This is the version we use for NVIDIA L40S servers under NVIDIA AI Enterprise, written for our machine learning, cloud and MLOps engineers. It is deliberately unglamorous.
+
+## Day one: prove the platform, not the model
+
+The morning is foundations, each step with a verification command and a pass condition. Hardware enumeration with every L40S visible and healthy. A clean Ubuntu Server 22.04 LTS install and patch cycle. The NVIDIA data centre driver, confirmed with nvidia-smi. Docker and the NVIDIA Container Toolkit, confirmed by running a CUDA base image with GPU access. NVIDIA AI Enterprise licensing activated and NGC access configured. Where the deployment is Kubernetes, a cluster with GPU nodes labelled and the NVIDIA GPU Operator installed and managing the driver, toolkit and device plugin.
+
+The afternoon confirms the GPUs are real to every layer above them. nvidia-smi run repeatedly, checking that each card reports its 48 GB of GDDR6 and no warnings. A CUDA sample compiled and run on bare metal, then the same workload inside a container, then the same workload as a Kubernetes deployment with a GPU resource request, confirming the scheduler allocates a card and the job passes.
+
+Every one of these steps has failed for us somewhere at some point. Finding the failure on day one costs an hour. Finding it during a benchmark run costs a week of confused results.
+
+## Day two: benchmark what the client will actually run
+
+Only then do models enter. The sheet deploys an NVIDIA NIM for a common LLM and captures latency, throughput, utilisation and memory. It baselines single-GPU inference across batch sizes and prompt lengths with p90 and p99 latency, then scales to multiple GPUs with a larger model at FP8 or four-bit precision to measure scaling efficiency. It evaluates fine-tuning with LoRA and QLoRA through NeMo, converts a model to a TensorRT-LLM engine and compares against the unoptimised path, and tests FP16, FP8 and INT8 for the throughput and memory trade-off, noting any accuracy change. It closes with hours of sustained load while temperature, power and error rate are logged.
+
+## Day three: operate it before you hand it over
+
+The last day is observability and failure. GPU metrics into Grafana through the DCGM exporter, centralised logs, alert rules for temperature, memory and application errors. Container image scanning against the client's security policy. iperf3 between nodes for the distributed case. Power and thermal profiles under each workload. And a deliberate node failure, cordoning a node or killing a GPU-bound service, to observe how the cluster degrades and how long recovery takes.
+
+## Where this particular run stands
+
+For the L40S servers this sheet was written against, in July 2025, day one is complete: drivers, container runtime, licensing, Kubernetes and GPU Operator validated end to end, with CUDA workloads passing on bare metal, in containers and under Kubernetes. The day two and three benchmarks are scheduled and will be published here when they are run, with the device, precision and conditions for every number.
+
+The output of the whole exercise is a performance report, an updated deployment guide with the validated steps, and a known-issues list. That document is what a client gets alongside their cluster. It is also what lets us say a sovereign deployment is production-ready and mean it.
+
+*This run sheet is used across our sovereign AI deployments in India and Australia.*
