@@ -95,7 +95,7 @@ export default function Page() {
               <a href="/digital-ai" className="group rounded-2xl border border-line p-6 hover:border-white/40 transition-colors">
                 <p className="text-xs text-dim">12–16 weeks</p>
                 <p className="mt-2 text-white font-medium">P4 Industry Agents Accelerator</p>
-                <p className="mt-1 text-sm leading-6 text-muted">Vertical agents deployed against the customer's own systems.</p>
+                <p className="mt-1 text-sm leading-6 text-muted">Vertical agents deployed against the customer&rsquo;s own systems.</p>
               </a>
               <a href="/digital-ai" className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-slate-200">All agentic AI packages <Icon name="arrow-right" /></a>
             </div>

@@ -88,7 +88,7 @@ export default function DigitalAi() {
         <section className="mt-20">
           <span className="pill">What we build, and what it delivers</span>
           <p className="mt-5 text-[15px] leading-[27px] text-muted max-w-2xl">
-            Delivered on the customer's cloud and models of choice.
+            Delivered on the customer&rsquo;s cloud and models of choice.
           </p>
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {CAPABILITIES.map(([t, b, o]) => (

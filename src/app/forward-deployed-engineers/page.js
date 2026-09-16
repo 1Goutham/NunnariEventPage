@@ -149,7 +149,7 @@ export default function ForwardDeployedEngineers() {
               Not every AI FDE is built for the job.
             </h2>
             <p className="mt-5 text-[15px] leading-[27px] text-muted">
-              Staff-augmentation agencies are supplying cloud engineers, DevOps engineers and software developers as "FDEs". A real AI FDE is a different breed.
+              Staff-augmentation agencies are supplying cloud engineers, DevOps engineers and software developers as &ldquo;FDEs&rdquo;. A real AI FDE is a different breed.
             </p>
             <div className="mt-6 rounded-2xl border border-line p-6">
               <p className="text-xs text-dim uppercase tracking-[0.12em]">The cost of getting this wrong</p>
