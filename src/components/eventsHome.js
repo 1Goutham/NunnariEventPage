@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Icon from "@/components/ui/icon";
 import Reveal from "./motion/reveal";
 import SectionHeader from "./ui/section-header";
@@ -19,10 +20,10 @@ export default function EventsHome() {
             sub={`${stats.total} talks, panels, workshops and community events across ${stats.cities} cities since ${stats.since}, from a standards body in Coimbatore to Australia's AI Month.`}
           />
           <Reveal y={20} delay={0.1}>
-            <a href="/events" className="inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
+            <Link href="/events" className="group inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
               View all events
-              <Icon name="arrow-right" />
-            </a>
+              <Icon name="arrow-right" className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </Reveal>
         </div>
 

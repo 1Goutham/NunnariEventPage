@@ -12,6 +12,7 @@ import Icon from "@/components/ui/icon";
 import { EventLeadCard, EventSplitCard } from "@/components/events/event-card";
 import EventArchive from "@/components/events/event-archive";
 import ThemeTiles from "@/components/events/theme-tiles";
+import SpotlightCard from "@/components/motion/spotlight-card";
 import {
   getAllEvents,
   getFeaturedEvents,
@@ -49,6 +50,7 @@ export default function EventsPage() {
     .filter((t) => t.count > 0)
     .sort((a, b) => b.count - a.count);
   const [lead, ...secondary] = featured;
+  const today = new Date().toISOString().slice(0, 10);
 
   const STATS = [
     { value: stats.total, label: "Events since " + stats.since },
@@ -99,9 +101,9 @@ export default function EventsPage() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <SectionHeader eyebrow="Recent" title="The rooms we were in last." sub="Three recent events, and what we said in them." />
           <Reveal y={20} delay={0.1}>
-            <a href="#archive" className="inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
+            <a href="#archive" className="group inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
               Browse the archive
-              <Icon name="arrow-right" />
+              <Icon name="arrow-right" className="transition-transform duration-300 group-hover:translate-x-1" />
             </a>
           </Reveal>
         </div>
@@ -138,7 +140,7 @@ export default function EventsPage() {
         <SectionHeader eyebrow="Archive" title="Every event, in order." sub="Filter by what we did there or by theme. Dates we could not confirm to the day are shown by month." />
         <div className="mt-12">
           <Suspense fallback={<div className="h-40" />}>
-            <EventArchive items={items} roleKinds={ROLE_KINDS} themes={themes} />
+            <EventArchive items={items} roleKinds={ROLE_KINDS} themes={themes} today={today} />
           </Suspense>
         </div>
       </section>
@@ -171,11 +173,11 @@ export default function EventsPage() {
               return (
                 <Reveal key={c.key} y={14} delay={0.04 * i} className={`h-full ${span}`}>
                   {c.href ? (
-                    <a href={c.href} target="_blank" rel="noopener noreferrer" className="group block h-full rounded-2xl border border-line p-6 hover:border-white/40 transition-colors">
+                    <SpotlightCard href={c.href} target="_blank" rel="noopener noreferrer" className="block h-full rounded-2xl border border-line p-6 hover:border-white/40 transition-colors">
                       {inner}
-                    </a>
+                    </SpotlightCard>
                   ) : (
-                    <div className="h-full rounded-2xl border border-line p-6">{inner}</div>
+                    <SpotlightCard className="h-full rounded-2xl border border-line p-6 hover:border-white/40 transition-colors">{inner}</SpotlightCard>
                   )}
                 </Reveal>
               );

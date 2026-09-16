@@ -10,9 +10,14 @@ import Cta from "@/components/cta";
 import BreadcrumbLd from "@/components/breadcrumbLd";
 import Reveal from "@/components/motion/reveal";
 import Icon from "@/components/ui/icon";
+import Link from "next/link";
 import EventDate from "@/components/events/event-date";
 import EventGallery from "@/components/events/event-gallery";
+import CopyLink from "@/components/events/copy-link";
 import { EventCompactCard } from "@/components/events/event-card";
+import SpotlightCard from "@/components/motion/spotlight-card";
+import ReadingProgress from "@/components/motion/reading-progress";
+import QuoteReveal from "@/components/motion/quote-reveal";
 import {
   getAllEvents,
   getEventBySlug,
@@ -64,14 +69,26 @@ function NeighbourLink({ e, dir }) {
   if (!e) return <div className="hidden md:block" />;
   const older = dir === "older";
   return (
-    <a
+    <SpotlightCard
       href={`/events/${e.slug}`}
-      className={`group flex flex-col rounded-2xl border border-line p-6 transition-all duration-300 hover:border-white/60 hover:bg-white/[0.04] ${older ? "md:text-right md:items-end" : ""}`}
+      className={`flex flex-col rounded-2xl border border-line p-6 transition-colors duration-300 hover:border-white/40 ${older ? "md:text-right md:items-end" : ""}`}
     >
-      <span className="text-xs uppercase tracking-[0.12em] text-dim">{older ? "Earlier" : "Later"}</span>
+      <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.12em] text-dim">
+        {older ? (
+          <>
+            Earlier
+            <Icon name="arrow-right" className="text-[10px] transition-transform duration-300 group-hover:translate-x-1" />
+          </>
+        ) : (
+          <>
+            <Icon name="arrow-left" className="text-[10px] transition-transform duration-300 group-hover:-translate-x-1" />
+            Later
+          </>
+        )}
+      </span>
       <span className="mt-2 text-[17px] leading-[1.4] font-medium text-white group-hover:text-slate-200 transition-colors">{e.meta.short}</span>
       <span className="mt-1 text-sm text-dim">{formatEventDate(e.meta.date, e.meta.datePrecision)}</span>
-    </a>
+    </SpotlightCard>
   );
 }
 
@@ -107,15 +124,17 @@ export default function EventPage({ params }) {
 
   return (
     <div className="bg-[#010314]">
+      <ReadingProgress />
       <Navbar />
       <BreadcrumbLd label={m.short} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
 
       <header className="border-b border-line">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-10 pt-24 md:pt-32 pb-14">
-          <a href="/events" className="text-muted hover:text-ink text-sm transition-colors">
-            ← All events
-          </a>
+          <Link href="/events" className="group inline-flex items-center gap-1.5 text-muted hover:text-ink text-sm transition-colors">
+            <Icon name="arrow-left" className="text-xs transition-transform duration-300 group-hover:-translate-x-1" />
+            All events
+          </Link>
 
           <p className="mt-8 text-sm text-dim">
             {[dateText, m.city, m.role].filter(Boolean).join(" · ")}
@@ -159,11 +178,7 @@ export default function EventPage({ params }) {
             {m.quote ? (
               <Reveal y={16} delay={0.08} className={visual ? (isPoster ? "lg:col-span-8" : "lg:col-span-6") : "lg:col-span-8"}>
                 <blockquote className="lg:pl-4">
-                  <p className="headline text-[26px] md:text-[34px] leading-[1.3] font-medium">
-                    <span aria-hidden="true">&ldquo;</span>
-                    {m.quote}
-                    <span aria-hidden="true">&rdquo;</span>
-                  </p>
+                  <QuoteReveal text={m.quote} className="headline text-[26px] md:text-[34px] leading-[1.3] font-medium" />
                   {m.speakers?.length ? <footer className="mt-5 text-sm text-dim">{m.speakers[0]}</footer> : null}
                 </blockquote>
               </Reveal>
@@ -199,10 +214,10 @@ export default function EventPage({ params }) {
                     <ul className="space-y-1">
                       {m.links.map((l) => (
                         <li key={l.href}>
-                          <a href={l.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-white hover:text-slate-200 transition-colors">
+                          <a href={l.href} target="_blank" rel="noopener noreferrer" className="group/src inline-flex items-center gap-1.5 text-white hover:text-slate-200 transition-colors">
                             <Icon name="linkedin" className="text-xs" />
                             {l.label}
-                            <span aria-hidden="true" className="text-dim">↗</span>
+                            <span aria-hidden="true" className="inline-block text-dim transition-transform duration-300 group-hover/src:-translate-y-0.5 group-hover/src:translate-x-0.5">↗</span>
                           </a>
                         </li>
                       ))}
@@ -210,7 +225,16 @@ export default function EventPage({ params }) {
                   </Fact>
                 ) : null}
               </dl>
-              {m.context ? <p className="mt-5 pt-5 border-t border-line text-xs leading-5 text-dim">{m.context}</p> : null}
+              <div className="mt-5 pt-5 border-t border-line flex flex-wrap items-center gap-x-5 gap-y-2">
+                <CopyLink />
+                {gallery.length > 1 ? (
+                  <a href="#photos" className="group/jump inline-flex items-center gap-1.5 text-sm text-white hover:text-slate-200 transition-colors">
+                    <span aria-hidden="true" className="inline-block transition-transform duration-300 group-hover/jump:translate-y-0.5">↓</span>
+                    {gallery.length} photos
+                  </a>
+                ) : null}
+              </div>
+              {m.context ? <p className="mt-4 text-xs leading-5 text-dim">{m.context}</p> : null}
             </div>
           </aside>
 
@@ -223,7 +247,7 @@ export default function EventPage({ params }) {
               <div className="mt-12 max-w-2xl">
                 <p className="text-xs uppercase tracking-[0.12em] text-dim">Video</p>
                 <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-black">
-                  <video controls playsInline preload="none" poster={m.video.poster || undefined} className="w-full">
+                  <video controls playsInline preload="metadata" poster={m.video.poster || undefined} className="w-full">
                     <source src={m.video.src} type="video/mp4" />
                   </video>
                 </div>
@@ -234,7 +258,7 @@ export default function EventPage({ params }) {
       </article>
 
       {gallery.length > 1 ? (
-        <section className="max-w-[1200px] mx-auto px-6 lg:px-10 pb-16 md:pb-20">
+        <section id="photos" className="max-w-[1200px] mx-auto px-6 lg:px-10 pb-16 md:pb-20 scroll-mt-28">
           <div className="flex items-baseline justify-between gap-4 mb-6">
             <p className="text-xs uppercase tracking-[0.12em] text-dim">Photos</p>
             <p className="text-xs text-dim tabular-nums">{gallery.length}</p>
@@ -258,10 +282,10 @@ export default function EventPage({ params }) {
                 <span className="pill">Related</span>
                 <h2 className="headline mt-6 text-[28px] md:text-[34px] leading-[1.3] font-medium max-w-2xl">More on the same threads.</h2>
               </div>
-              <a href="/events" className="hidden sm:inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
+              <Link href="/events" className="group hidden sm:inline-flex items-center gap-2 text-white text-sm font-semibold hover:text-slate-200 transition-colors shrink-0">
                 All events
-                <Icon name="arrow-right" />
-              </a>
+                <Icon name="arrow-right" className="transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
             <div className="mt-10 grid md:grid-cols-3 gap-6">
               {related.map((item, i) => (
