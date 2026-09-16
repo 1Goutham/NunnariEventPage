@@ -12,6 +12,7 @@ const LABELS = {
   "case-studies": "Outcomes",
   blogs: "Research articles",
   team: "Company",
+  events: "Events",
   contact: "Contact",
   privacy: "Privacy Policy",
   terms: "Terms of Use",

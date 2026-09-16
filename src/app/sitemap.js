@@ -18,7 +18,7 @@ function slugs(dir) {
 export default function sitemap() {
   const now = new Date();
   const routes = [
-    "", "/case-studies", "/blogs", "/team", "/contact", "/privacy", "/terms",
+    "", "/case-studies", "/blogs", "/events", "/team", "/contact", "/privacy", "/terms",
     "/ai-governance", "/digital-ai", "/frontier-ai", "/sovereign-ai", "/factory-brain", "/forward-deployed-engineers",
     "/services/digital-technology-consulting", "/services/ai-solutions",
     "/services/intelligent-industrial-automation", "/services/enterprise-software",
@@ -27,5 +27,6 @@ export default function sitemap() {
 
   const cases = slugs("src/_mdx_case_studies").map((s) => ({ url: `${BASE}/case-studies/${s}`, lastModified: now, changeFrequency: "yearly", priority: 0.6 }));
   const posts = slugs("src/_mdx_blog").map((s) => ({ url: `${BASE}/blogs/${s}`, lastModified: now, changeFrequency: "yearly", priority: 0.5 }));
-  return [...routes, ...cases, ...posts];
+  const events = slugs("src/_mdx_events").map((s) => ({ url: `${BASE}/events/${s}`, lastModified: now, changeFrequency: "yearly", priority: 0.5 }));
+  return [...routes, ...cases, ...posts, ...events];
 }

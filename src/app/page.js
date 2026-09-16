@@ -9,6 +9,7 @@ import WhyChooseUs from "../components/whychooseus";
 import ResponsibleAi from "../components/responsibleAi";
 import Partners from "../components/partners";
 import About from "../components/about";
+import EventsHome from "@/components/eventsHome";
 import CaseStudyHome from "@/components/casestudyHome";
 import Cta from "../components/cta";
 import Footer from "../components/footer";
@@ -28,6 +29,7 @@ export default function Home() {
         <WhyChooseUs />
         <ResponsibleAi />
         <Partners />
+        <EventsHome />
         <About />
         <CaseStudyHome />
         <Cta />

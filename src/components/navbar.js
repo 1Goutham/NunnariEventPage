@@ -14,13 +14,18 @@ const SERVICES = [
   { label: "Forward-deployed engineers", href: "/forward-deployed-engineers" },
 ];
 
+const COMPANY = [
+  { label: "Team", href: "/team" },
+  { label: "Events", href: "/events" },
+];
+
 const NAV_ITEMS = [
   { label: "Home", href: "/", path: "/" },
   { label: "Services", href: "/#services", scroll: "services", children: SERVICES },
   { label: "AI governance", href: "/ai-governance", path: "/ai-governance" },
   { label: "Outcomes", href: "/case-studies", path: "/case-studies" },
   { label: "Research", href: "/blogs", path: "/blogs" },
-  { label: "Company", href: "/team", path: "/team" },
+  { label: "Company", href: "/team", path: "/team", children: COMPANY },
   { label: "Contact", href: "/contact", path: "/contact" },
 ];
 
@@ -57,7 +62,10 @@ export default function Navbar() {
   }
 
   function linkClass(item, mobile) {
-    const isActive = item.path && path === item.path;
+    // A parent with children is active on any of its children's routes.
+    const isActive =
+      (item.path && path === item.path) ||
+      (item.children && item.path && item.children.some((c) => path === c.href || path.startsWith(c.href + "/")));
     if (mobile) {
       return `block px-3 py-2 rounded-xl text-[15px] cursor-pointer ${
         isActive
@@ -123,7 +131,7 @@ export default function Navbar() {
                             href={c.href}
                             onClick={(e) => handleNav(c, e)}
                             className={`block whitespace-nowrap rounded-xl px-4 py-2.5 text-[15px] transition-colors ${
-                              path === c.href ? "text-white bg-white/5" : "text-muted hover:text-white hover:bg-white/5"
+                              path === c.href || path.startsWith(c.href + "/") ? "text-white bg-white/5" : "text-muted hover:text-white hover:bg-white/5"
                             }`}
                           >
                             {c.label}

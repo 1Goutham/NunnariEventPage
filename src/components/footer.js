@@ -21,6 +21,7 @@ const EXPLORE = [
   { label: "Factory Brain", href: "/factory-brain" },
   { label: "Research", href: "/blogs" },
   { label: "Team", href: "/team" },
+  { label: "Events", href: "/events" },
   { label: "Contact", href: "/contact" },
 ];
 
