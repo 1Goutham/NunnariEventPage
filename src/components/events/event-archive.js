@@ -94,12 +94,12 @@ function HoverPreview({ item, x, y, rotate }) {
   );
 }
 
-export default function EventArchive({ items, roleKinds, themes, today }) {
+export default function EventArchive({ items, roleKinds, types, today }) {
   const router = useRouter();
   const search = useSearchParams();
   const reduced = useReducedMotion();
   const [role, setRole] = useState(search.get("role") || "all");
-  const [theme, setTheme] = useState(search.get("theme") || "all");
+  const [type, setType] = useState(search.get("type") || "all");
   const [activeYear, setActiveYear] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [cursorSlug, setCursorSlug] = useState(null);
@@ -125,39 +125,33 @@ export default function EventArchive({ items, roleKinds, themes, today }) {
     setCanHover(fine && !reduced);
   }, [reduced]);
 
-  // Keep the URL in step with the filters so a theme tile or a shared link
+  // Keep the URL in step with the filters so a shared link
   // lands on the same view. Replace, not push, so back stays predictable.
   useEffect(() => {
     const params = new URLSearchParams();
     if (role !== "all") params.set("role", role);
-    if (theme !== "all") params.set("theme", theme);
+    if (type !== "all") params.set("type", type);
     const qs = params.toString();
     if (qs === search.toString()) return;
     router.replace(`/events${qs ? `?${qs}` : ""}`, { scroll: false });
-  }, [role, theme, router, search]);
-
-  useEffect(() => {
-    const onTheme = (e) => setTheme(e.detail || "all");
-    window.addEventListener("events:theme", onTheme);
-    return () => window.removeEventListener("events:theme", onTheme);
-  }, []);
+  }, [role, type, router, search]);
 
   const matchRole = useCallback((i, r) => r === "all" || i.roleKind === r, []);
-  const matchTheme = useCallback((i, t) => t === "all" || i.themeKeys.includes(t), []);
+  const matchType = useCallback((i, t) => t === "all" || i.typeKeys.includes(t), []);
 
-  const filtered = useMemo(() => items.filter((i) => matchRole(i, role) && matchTheme(i, theme)), [items, role, theme, matchRole, matchTheme]);
+  const filtered = useMemo(() => items.filter((i) => matchRole(i, role) && matchType(i, type)), [items, role, type, matchRole, matchType]);
 
-  // Cross-filter counts: each role count honours the theme filter and vice versa.
+  // Cross-filter counts: each role count honours the type filter and vice versa.
   const roleCounts = useMemo(() => {
-    const c = { all: items.filter((i) => matchTheme(i, theme)).length };
-    roleKinds.forEach((r) => (c[r.key] = items.filter((i) => i.roleKind === r.key && matchTheme(i, theme)).length));
+    const c = { all: items.filter((i) => matchType(i, type)).length };
+    roleKinds.forEach((r) => (c[r.key] = items.filter((i) => i.roleKind === r.key && matchType(i, type)).length));
     return c;
-  }, [items, roleKinds, theme, matchTheme]);
-  const themeCounts = useMemo(() => {
+  }, [items, roleKinds, type, matchType]);
+  const typeCounts = useMemo(() => {
     const c = { all: items.filter((i) => matchRole(i, role)).length };
-    themes.forEach((t) => (c[t.key] = items.filter((i) => i.themeKeys.includes(t.key) && matchRole(i, role)).length));
+    types.forEach((t) => (c[t.key] = items.filter((i) => i.typeKeys.includes(t.key) && matchRole(i, role)).length));
     return c;
-  }, [items, themes, role, matchRole]);
+  }, [items, types, role, matchRole]);
 
   const groups = useMemo(() => {
     const map = new Map();
@@ -173,7 +167,7 @@ export default function EventArchive({ items, roleKinds, themes, today }) {
   }, [filtered, today]);
 
   const years = groups.map(([y]) => y);
-  const filtering = role !== "all" || theme !== "all";
+  const filtering = role !== "all" || type !== "all";
 
   // Year rail follows scroll position.
   useEffect(() => {
@@ -226,14 +220,14 @@ export default function EventArchive({ items, roleKinds, themes, today }) {
 
   const clear = () => {
     setRole("all");
-    setTheme("all");
+    setType("all");
   };
 
   const roleOptions = [{ key: "all", label: "All" }, ...roleKinds];
-  const themeOptions = [{ key: "all", label: "All" }, ...themes];
+  const typeOptions = [{ key: "all", label: "All" }, ...types];
   const activeChips = [
     role !== "all" ? { key: "role", label: roleKinds.find((r) => r.key === role)?.label, onRemove: () => setRole("all") } : null,
-    theme !== "all" ? { key: "theme", label: themes.find((t) => t.key === theme)?.label, onRemove: () => setTheme("all") } : null,
+    type !== "all" ? { key: "type", label: types.find((t) => t.key === type)?.label, onRemove: () => setType("all") } : null,
   ].filter(Boolean);
 
   let rowIndex = 0;
@@ -242,7 +236,7 @@ export default function EventArchive({ items, roleKinds, themes, today }) {
     <div id="archive" className="scroll-mt-28">
       <div className="flex flex-col gap-4 border-b border-line pb-8">
         <FilterGroup label="Role" options={roleOptions} value={role} onChange={setRole} layoutId="events-role" counts={roleCounts} />
-        <FilterGroup label="Theme" options={themeOptions} value={theme} onChange={setTheme} layoutId="events-theme" counts={themeCounts} />
+        <FilterGroup label="Type" options={typeOptions} value={type} onChange={setType} layoutId="events-type" counts={typeCounts} />
       </div>
 
       <div className="mt-10 grid lg:grid-cols-12 gap-x-10">

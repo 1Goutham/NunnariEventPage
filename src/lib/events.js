@@ -4,37 +4,59 @@ import matter from "gray-matter";
 
 // Server-only loader for src/_mdx_events. Mirrors the blog and case-study
 // loaders: one MDX file per event, frontmatter is the record, body is prose.
+// Title, role, type, organiser, venue and location in the frontmatter are
+// copied verbatim from the events tracker.
 
 const DIR = path.join(process.cwd(), "src/_mdx_events");
 
+// Role filter groups. Each group's members are the tracker's own Role
+// wordings; the group label is the tracker's word.
 export const ROLE_KINDS = [
-  { key: "spoke", label: "Spoke", verb: "Talks and panels" },
-  { key: "organised", label: "Organised", verb: "Organised or hosted" },
-  { key: "mentored", label: "Mentored", verb: "Mentored and led" },
-  { key: "participated", label: "Took part", verb: "Took part" },
+  { key: "spoke", label: "Spoke" },
+  { key: "organised", label: "Organised" },
+  { key: "mentored", label: "Mentored" },
+  { key: "participated", label: "Participated" },
 ];
 
-export const THEMES = [
-  { key: "agentic-ai", label: "Agentic AI", blurb: "Reliable agents in production: human checkpoints, traceability, and knowing when to stay deterministic." },
-  { key: "ai-governance", label: "AI governance", blurb: "ISO/IEC 42001 in practice, from a standards body in Coimbatore to Australia's AI Month." },
-  { key: "physical-ai", label: "Physical AI", blurb: "Autonomous racing cars, software-defined vehicles and the discipline of AI on real hardware." },
-  { key: "tamil-and-sovereign-ai", label: "Tamil and sovereign AI", blurb: "Language models that understand and reason in Tamil, and AI that belongs to the place it serves." },
-  { key: "enterprise-adoption", label: "Enterprise adoption", blurb: "Where AI stalls inside organisations, and what moves a careful team from experiment to governed use." },
-  { key: "open-source-and-community", label: "Open source and community", blurb: "Meetups, conferences and conclaves we organise or turn up for, so the ecosystem has more than one organiser." },
-  { key: "education-and-talent", label: "Education and talent", blurb: "Students, early-career engineers and the regional talent pipeline that Nunnari Labs grew out of." },
+// Type filter groups, one per word the tracker's Type column uses. An event
+// belongs to every group whose word appears in its Type, so "Conference
+// workshop" is both a conference and a workshop.
+export const TYPE_GROUPS = [
+  { key: "conference", label: "Conference", match: /conference/i },
+  { key: "panel", label: "Panel", match: /panel/i },
+  { key: "workshop", label: "Workshop", match: /workshop/i },
+  { key: "meetup", label: "Meetup", match: /meetup/i },
+  { key: "webinar", label: "Webinar", match: /webinar/i },
+  { key: "hackathon", label: "Hackathon", match: /hackathon/i },
+  { key: "festival", label: "Festival", match: /festival/i },
+  { key: "competition", label: "Competition", match: /competition/i },
+  { key: "summit", label: "Summit", match: /summit/i },
+  { key: "seminar", label: "Seminar", match: /seminar/i },
+  { key: "lecture", label: "Lecture", match: /lecture/i },
+  { key: "bootcamp", label: "Bootcamp", match: /bootcamp/i },
+  { key: "retreat", label: "Retreat", match: /retreat/i },
+  { key: "roundtable", label: "Roundtable", match: /roundtable/i },
+  { key: "launch", label: "Launch", match: /launch/i },
+  { key: "inauguration", label: "Inauguration", match: /inauguration/i },
+  { key: "industry", label: "Industry", match: /industry/i },
+  { key: "corporate", label: "Corporate", match: /corporate/i },
+  { key: "standards-body", label: "Standards body", match: /standards body/i },
+  { key: "devfest", label: "DevFest", match: /devfest/i },
+  { key: "fireside", label: "Fireside", match: /fireside/i },
+  { key: "talk", label: "Talk", match: /\btalk\b/i },
 ];
 
-export const COMMUNITIES = [
-  { key: "AI Tamil Nadu", blurb: "The state's open AI community, led by Nunnari Labs. Previously AI Coimbatore. More than ten thousand practitioners.", href: "https://www.youtube.com/@aitamilnadu" },
-  { key: "ML.Cbe", blurb: "Coimbatore's machine learning community, formerly TFUG Coimbatore. Eight years of monthly meetups and an annual Build With AI.", href: null },
-  { key: "GDG Coimbatore", blurb: "Google Developer Group for the city. Tech for Good and Google I/O Extended.", href: null },
-  { key: "FOSS United Coimbatore", blurb: "The open-source community's first Coimbatore chapter, where we spoke at the inaugural meetup.", href: null },
-  { key: "Nunnari Academy", blurb: "AI skilling for practitioners and enterprise teams, run on its own platform with recurring cohorts and free sessions.", href: "https://nunnari.academy" },
-];
-
-export function themeKey(label) {
-  return label.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+export function typeKeys(type) {
+  return TYPE_GROUPS.filter((g) => g.match.test(type || "")).map((g) => g.key);
 }
+
+// Communities named as organisers in the tracker. The two facts quoted here
+// come from the site's Team page (AI Tamil Nadu) and the Build With AI post
+// (ML.Cbe).
+export const COMMUNITIES = [
+  { key: "AI Tamil Nadu", blurb: "Led by Nunnari Labs. Previously AI Coimbatore. A community of 10,000+ practitioners.", href: "https://www.youtube.com/@aitamilnadu" },
+  { key: "ML.Cbe", blurb: "Previously TFUG Coimbatore. Eight years old at Build With AI 2025.", href: null },
+];
 
 function read(filename) {
   const raw = fs.readFileSync(path.join(DIR, filename), "utf-8");
@@ -74,32 +96,39 @@ export function getNeighbours(slug) {
   return { newer: all[i - 1] || null, older: all[i + 1] || null };
 }
 
+// Related by shared tracker type words, then by shared organiser, newest first.
 export function getRelated(event, limit = 3) {
   const all = getAllEvents().filter((e) => e.slug !== event.slug);
-  const themes = new Set(event.meta.themes || []);
+  const keys = new Set(typeKeys(event.meta.type));
+  const orgs = new Set(event.meta.organisers || []);
   const scored = all
-    .map((e) => ({ e, score: (e.meta.themes || []).filter((t) => themes.has(t)).length + (e.meta.cover ? 0.5 : 0) }))
+    .map((e) => ({
+      e,
+      score:
+        typeKeys(e.meta.type).filter((k) => keys.has(k)).length +
+        (e.meta.organisers || []).filter((o) => orgs.has(o)).length * 2 +
+        (e.meta.cover ? 0.5 : 0),
+    }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score || new Date(b.e.meta.date) - new Date(a.e.meta.date));
   return scored.slice(0, limit).map((x) => x.e);
 }
 
 export function getEventStats(events = getAllEvents()) {
-  const cities = new Set(events.map((e) => e.meta.city).filter((c) => c && c !== "Online"));
+  const locations = new Set(events.map((e) => e.meta.city).filter((c) => c && c !== "Online"));
   const years = events.map((e) => new Date(e.meta.date).getFullYear());
   return {
     total: events.length,
     spoke: events.filter((e) => e.meta.roleKind === "spoke").length,
     organised: events.filter((e) => ["organised", "mentored"].includes(e.meta.roleKind)).length,
-    cities: cities.size,
+    locations: locations.size,
     since: Math.min(...years),
-    countries: new Set(events.map((e) => e.meta.country).filter(Boolean)).size,
   };
 }
 
-export function countByTheme(events = getAllEvents()) {
+export function countByType(events = getAllEvents()) {
   const counts = {};
-  events.forEach((e) => (e.meta.themes || []).forEach((t) => (counts[t] = (counts[t] || 0) + 1)));
+  events.forEach((e) => typeKeys(e.meta.type).forEach((k) => (counts[k] = (counts[k] || 0) + 1)));
   return counts;
 }
 
@@ -122,13 +151,10 @@ export function toListItem(e) {
     role: m.role,
     roleKind: m.roleKind,
     type: m.type,
+    typeKeys: typeKeys(m.type),
     organisers: m.organisers || [],
     venue: m.venue || null,
     city: m.city,
-    country: m.country,
-    format: m.format,
-    themes: m.themes || [],
-    themeKeys: (m.themes || []).map(themeKey),
     communities: m.communities || [],
     summary: m.summary,
     quote: m.quote || null,

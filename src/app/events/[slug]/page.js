@@ -25,7 +25,6 @@ import {
   getRelated,
   toListItem,
   formatEventDate,
-  themeKey,
 } from "@/lib/events";
 
 const BASE = "https://nunnarilabs.com";
@@ -111,13 +110,13 @@ export default function EventPage({ params }) {
     startDate: m.date,
     endDate: m.endDate || m.date,
     eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: m.format === "Online" ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
+    eventAttendanceMode: m.city === "Online" ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
     url: `${BASE}/events/${e.slug}`,
     image: visual ? [`${BASE}${visual.src}`] : undefined,
     location:
-      m.format === "Online"
+      m.city === "Online"
         ? { "@type": "VirtualLocation", url: `${BASE}/events/${e.slug}` }
-        : { "@type": "Place", name: m.venue || m.city, address: { "@type": "PostalAddress", addressLocality: m.city, addressCountry: m.country || undefined } },
+        : { "@type": "Place", name: m.venue || m.city, address: { "@type": "PostalAddress", addressLocality: m.city } },
     organizer: (m.organisers || []).map((o) => ({ "@type": "Organization", name: o })),
     performer: (m.speakers || []).map((s) => ({ "@type": "Person", name: s.split(",")[0] })),
   };
@@ -146,11 +145,6 @@ export default function EventPage({ params }) {
 
           <div className="mt-10 flex flex-wrap items-center gap-2">
             <span className="text-sm text-ink/80 border border-line rounded-full px-2.5 py-1 bg-white/5">{m.type}</span>
-            {(m.themes || []).map((t) => (
-              <a key={t} href={`/events?theme=${themeKey(t)}`} className="text-sm text-dim border border-line rounded-full px-2.5 py-1 hover:text-white hover:border-white/40 transition-colors">
-                {t}
-              </a>
-            ))}
           </div>
         </div>
       </header>
@@ -179,7 +173,7 @@ export default function EventPage({ params }) {
               <Reveal y={16} delay={0.08} className={visual ? (isPoster ? "lg:col-span-8" : "lg:col-span-6") : "lg:col-span-8"}>
                 <blockquote className="lg:pl-4">
                   <QuoteReveal text={m.quote} className="headline text-[26px] md:text-[34px] leading-[1.3] font-medium" />
-                  {m.speakers?.length ? <footer className="mt-5 text-sm text-dim">{m.speakers[0]}</footer> : null}
+                  {m.quoteBy ? <footer className="mt-5 text-sm text-dim">{m.quoteBy}</footer> : null}
                 </blockquote>
               </Reveal>
             ) : null}
@@ -195,8 +189,7 @@ export default function EventPage({ params }) {
               <EventDate date={m.date} precision={m.datePrecision} />
               <dl className="mt-6">
                 <Fact label="When">{dateText}</Fact>
-                <Fact label="Where">{[m.venue, m.city, m.country].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</Fact>
-                <Fact label="Format">{m.format}</Fact>
+                <Fact label="Where">{[m.venue, m.city].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i && !(i > 0 && a[0].includes(v))).join(", ")}</Fact>
                 <Fact label="Organised by">{(m.organisers || []).join(", ")}</Fact>
                 <Fact label="Our role">{m.role}</Fact>
                 {m.speakers?.length ? (

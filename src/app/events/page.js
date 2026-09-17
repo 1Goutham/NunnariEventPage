@@ -11,24 +11,23 @@ import SectionHeader from "@/components/ui/section-header";
 import Icon from "@/components/ui/icon";
 import { EventLeadCard, EventSplitCard } from "@/components/events/event-card";
 import EventArchive from "@/components/events/event-archive";
-import ThemeTiles from "@/components/events/theme-tiles";
 import SpotlightCard from "@/components/motion/spotlight-card";
 import {
   getAllEvents,
   getFeaturedEvents,
   getEventStats,
-  countByTheme,
+  countByType,
   countByCommunity,
   toListItem,
   ROLE_KINDS,
-  THEMES,
+  TYPE_GROUPS,
   COMMUNITIES,
 } from "@/lib/events";
 
 export const metadata = {
   title: "Events",
   description:
-    "Talks, panels, workshops and the community events Nunnari Labs organises across Tamil Nadu and Australia: agentic AI, AI governance, physical AI and Tamil language AI, since 2021.",
+    "Talks, panels, workshops and the community events Nunnari Labs organises, across Tamil Nadu and Australia, since 2021.",
   alternates: { canonical: "https://nunnarilabs.com/events" },
   openGraph: {
     title: "Events | Nunnari Labs",
@@ -44,9 +43,9 @@ export default function EventsPage() {
   const items = events.map(toListItem);
   const featured = getFeaturedEvents(3).map(toListItem);
   const stats = getEventStats(events);
-  const themeCounts = countByTheme(events);
+  const typeCounts = countByType(events);
   const communityCounts = countByCommunity(events);
-  const themes = THEMES.map((t) => ({ ...t, count: themeCounts[t.label] || 0 }))
+  const types = TYPE_GROUPS.map((t) => ({ key: t.key, label: t.label, count: typeCounts[t.key] || 0 }))
     .filter((t) => t.count > 0)
     .sort((a, b) => b.count - a.count);
   const [lead, ...secondary] = featured;
@@ -56,7 +55,7 @@ export default function EventsPage() {
     { value: stats.total, label: "Events since " + stats.since },
     { value: stats.spoke, label: "Talks, panels and workshops" },
     { value: stats.organised, label: "Organised, hosted or led" },
-    { value: stats.cities, label: "Cities across " + stats.countries + " countries" },
+    { value: stats.locations, label: "Locations" },
   ];
 
   return (
@@ -76,8 +75,8 @@ export default function EventsPage() {
           </Reveal>
           <Reveal y={16} delay={0.1}>
             <p className="mt-6 text-[15px] leading-[27px] text-muted max-w-2xl">
-              Talks, panels and workshops on agentic AI, AI governance and physical AI, and the community events we
-              organise across Tamil Nadu and Australia. Five years of showing up in the AI ecosystem, not just building in it.
+              Talks, panels and workshops, and the community events we organise, across Tamil Nadu and Australia.
+              Every entry below is drawn from the event record and the post that announced or reported it.
             </p>
           </Reveal>
 
@@ -123,24 +122,12 @@ export default function EventsPage() {
         ) : null}
       </section>
 
-      {/* Themes */}
-      <section className="max-w-[1200px] mx-auto px-6 lg:px-10 py-20 md:py-24">
-        <SectionHeader
-          eyebrow="What we talk about"
-          title="Seven threads, one practice."
-          sub="Every talk and every event we organise sits on one of these. They are the same threads that run through our client work."
-        />
-        <div className="mt-12">
-          <ThemeTiles themes={themes} />
-        </div>
-      </section>
-
       {/* Archive */}
-      <section className="max-w-[1200px] mx-auto px-6 lg:px-10 pb-20 md:pb-24">
-        <SectionHeader eyebrow="Archive" title="Every event, in order." sub="Filter by what we did there or by theme. Dates we could not confirm to the day are shown by month." />
+      <section className="max-w-[1200px] mx-auto px-6 lg:px-10 pt-20 md:pt-24 pb-20 md:pb-24">
+        <SectionHeader eyebrow="Archive" title="Every event, in order." sub="Filter by our role or by the event type. Dates we could not confirm to the day are shown by month." />
         <div className="mt-12">
           <Suspense fallback={<div className="h-40" />}>
-            <EventArchive items={items} roleKinds={ROLE_KINDS} themes={themes} today={today} />
+            <EventArchive items={items} roleKinds={ROLE_KINDS} types={types} today={today} />
           </Suspense>
         </div>
       </section>
@@ -149,15 +136,14 @@ export default function EventsPage() {
       <section className="border-t border-line">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-20 md:py-24">
           <SectionHeader
-            eyebrow="Communities we build"
-            title="The ecosystem is not a stage we visit. It is one we run."
-            sub="Nunnari Labs grew out of Coimbatore's machine learning community and still leads it. These are the platforms behind most of the events above."
+            eyebrow="Communities"
+            title="The communities behind the events we organise."
+            sub="Nunnari Labs leads AI Tamil Nadu, previously AI Coimbatore. These are the communities named as organisers in the archive."
           />
-          {/* Five tiles: three across, then two wider, so no row is left ragged. */}
-          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-6 gap-5">
+          <div className="mt-12 grid sm:grid-cols-2 gap-5">
             {COMMUNITIES.map((c, i) => {
               const count = communityCounts[c.key] || 0;
-              const span = `${i === 0 ? "sm:col-span-2" : ""} ${i < 3 ? "lg:col-span-2" : "lg:col-span-3"}`;
+              const span = "";
               const inner = (
                 <>
                   <div className="flex items-baseline justify-between gap-4">
